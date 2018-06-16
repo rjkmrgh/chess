@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chess</title>
+        <meta charset="UTF-8">
+        <link type="text/css" rel="stylesheet" href="css/style.css">
+        <link type="text/css" rel="stylesheet" href="css/chessboard-0.3.0.min.css">
+    </head>
+    <body>
+        <header>
+           <h3 class="h3Head"> Chess Game</h3>
+        </header>
+        <!--<div id="FenInDvi">
+            Fen:<br/>
+            <input type="text" id="fenIn"/>
+            <button type="button" id="setFen">Set Position</button>
+        </div>-->
+        
+        <div class="topContainer">
+            <div id="board"  class="container"></div>
+
+            <div id="btnDiv" class="container">
+                <div id="btnDiv" class="histContainer">
+                    <input type="button" id="nextMove" title="Move" value="Move">
+                    <input type="button" id="undoMove" title="Undo" value="Undo">
+                    <input type="button" id="resetAll" title="Reset" value="Reset">
+                </div>
+                <div id="lblDiv" class="histContainer">
+                    <strong><label class="lblHead" for="lbl">Turn: </label></strong>
+                    <label for="lbl" id="lblTurn"> </label>
+                    <br/><br/>
+                    <strong><label class="lblHead">White's History: </label></strong>
+                    <label for="lbl" class="white" id="lblWhite"> </label>
+                    <br/><br/>
+                    <strong><label class="lblHead">Black's History: </label></strong>
+                    <label for="lbl" class="black" id="lblBlack"> </label>
+                </div>
+                <div id="timerDiv" class="histContainer">
+                    <div>456
+                    </div>
+                    <div>123
+                    </div>
+                </div>
+            </div>
+         </div>
+        
+        
+        <script src="Js/chessboard-0.3.0.min.js"></script>
+        <script src="Js/jquery-3.3.1.min.js"></script>
+        <script src="Js/chess-min.js"></script>
+        <script src="Js/defs.js"></script>
+        <script src="Js/main.js"></script>
+    </body>
+</html>
+

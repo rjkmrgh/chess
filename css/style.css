@@ -1,0 +1,41 @@
+
+
+.h3Head{
+    margin-top: 50px;
+    text-align: center;
+}
+
+#btnDiv{
+    width: 400px;
+    margin-left: 100px;
+    margin-top: 50px;
+    
+}
+
+#board{
+    width: 400px;
+}
+.container{
+    float: left;
+    
+}
+#lblDiv{
+    margin-top: 50px;
+    
+    border-radius: 5px;
+    border-width: 5px;
+}
+.histContainer{
+    width: 400px;
+    
+}
+
+.lblHead{
+    
+    padding: 5%;
+}
+.timerDiv{
+    background-color: greenyellow;
+    width: 100px;
+    height: 100px;
+}
