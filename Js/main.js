@@ -34,7 +34,30 @@ var businessController = (function(){
 })();
 
 var uiController = (function(){
+    let wCounter = 0, bCounter =0 , TotalTime = 300, wInterval, bInterval;
+    
+    var whiteTimer = function(){
+        wCounter += 1;
+    
+        $('#wTimerDiv').text(convertTime(TotalTime - wCounter)); 
+    }
+    var blackTimer = function(){
+        bCounter += 1;
+        
+        $('#bTimerDiv').text(convertTime(TotalTime - bCounter)); 
+    }
 
+    
+    var convertTime = function(counter){
+        let min = Math.floor(counter/60);
+        let sec = counter % 60;
+        if(counter === 0){
+            clearInterval(bInterval);
+            clearInterval(wInterval);
+        }
+        return '0' + min + ':' + (sec < 10 ? '0'+ sec : sec) ;
+    }
+    
     return{
         setHistory: function(orientation, history){
             let lblOr = '.' + orientation;
@@ -48,17 +71,42 @@ var uiController = (function(){
         },
         enableBtn: function(id){
             $(id).attr("disabled", false);
+        },
+        startWhiteTimer: function(){
+            wInterval =setInterval(whiteTimer, 1000); 
+            $('#wTimerDiv').attr('style',  'background-color: orange');
+            $('#bTimerDiv').attr('style',  'background-color: gray');
+        },
+        startBlackTimer: function(){
+            bInterval = setInterval(blackTimer, 1000);
+            $('#bTimerDiv').attr('style',  'background-color: orange');
+            $('#wTimerDiv').attr('style',  'background-color: gray');
+        },
+        clearWhiteTimer: function(){
+            clearInterval(wInterval);            
+        },
+        clearBlackTimer: function(){
+            clearInterval(bInterval);            
+        },
+        resetTimer: function(){
+            clearInterval(wInterval);            
+            clearInterval(bInterval);            
+            $('#bTimerDiv').text('5:00'); 
+            $('#wTimerDiv').text('5:00'); 
+            $('#wTimerDiv').attr('style',  'background-color: gray');
+            $('#bTimerDiv').attr('style',  'background-color: gray');
         }
     }
+    
 })();
 
 var appController = (function(bCtrl, uCtrl){
 
-    var cfg, board, game, history, isDraged;
+    var cfg, board, game, history, isDraged, isPaused = false;
 
     history = bCtrl.getHistory();
     const setEventListener = function(){
-         $('#nextMove').on('click',function(){
+        $('#nextMove').on('click',function(){
 
             uCtrl.disableBtn('#nextMove');
             isDraged = false;
@@ -88,24 +136,34 @@ var appController = (function(bCtrl, uCtrl){
             uCtrl.enableBtn('#nextMove');
 
          });
-         $('#undoMove').on('click',function(){
-                 uCtrl.disableBtn('#undoMove');
-                 if(history['black'].length > 0 || history['white'].length > 0){
-                     game.undo();
-                     board.position(game.fen());
-                     board.flip();
-
-                     if(history[board.orientation()].length > 0){
-                         bCtrl.undoHistory(board.orientation());
-                         uCtrl.setHistory(board.orientation(), history);
-                         uCtrl.setOrientation(bCtrl.headUpper(board.orientation()));
-
-                     }
+        $('#undoMove').on('click',function(){
+             uCtrl.disableBtn('#undoMove');
+             if(history['black'].length > 0 || history['white'].length > 0){
+                 var undoMove = game.undo();
+                 board.position(game.fen());
+                 board.flip();
+                 let color = board.orientation();    
+                 if(history[color].length > 0){
+                     bCtrl.undoHistory(color);
+                     uCtrl.setHistory(color, history);
+                     uCtrl.setOrientation(bCtrl.headUpper(color));
                  }
-                uCtrl.enableBtn('#undoMove');    
+                 if(color === 'white'){
+                     $('#wTimerDiv').attr('style',  'background-color: orange');
+                     $('#bTimerDiv').attr('style',  'background-color: gray');
+                     uCtrl.clearBlackTimer();
+                     uCtrl.startWhiteTimer();
+                 }else{
+                     $('#bTimerDiv').attr('style',  'background-color: orange');
+                     $('#wTimerDiv').attr('style',  'background-color: gray');
+                     uCtrl.clearWhiteTimer();
+                     uCtrl.startBlackTimer();
+                 }
+             }
+             uCtrl.enableBtn('#undoMove');    
 
          });
-         $('#resetAll').on('click',function(){
+        $('#resetAll').on('click',function(){
             console.log('reset');
             game.reset();
             board.start();
@@ -114,8 +172,53 @@ var appController = (function(bCtrl, uCtrl){
             }
             bCtrl.clearHistory();
             uCtrl.setHistory('white', history);  
-            uCtrl.setHistory('black', history);  
-        });            
+            uCtrl.setHistory('black', history); 
+            uCtrl.clearBlackTimer();
+            uCtrl.resetTimer();
+            
+        }); 
+        $('#start').on('click',function(){
+            
+            game = new Chess();  
+             $('#lblTurn').text(bCtrl.headUpper(board.orientation()));
+             enableGame();
+             uCtrl.startWhiteTimer();
+         });
+        
+        $('#bTimerDiv').on('click',function(){
+            document.getElementById('bTimerDiv').style.pointerEvents = 'none';
+            console.log('bTimeer')
+            uCtrl.clearBlackTimer();
+            uCtrl.startWhiteTimer();
+            document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
+        });
+        $('#wTimerDiv').on('click',function(){
+            document.getElementById('wTimerDiv').style.pointerEvents = 'none';
+            console.log('wTimeer'); 
+            uCtrl.clearWhiteTimer();
+            uCtrl.startBlackTimer();
+            document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
+        });
+        $('#pause').on('click',function(){
+            const orientation =board.orientation();
+            if(isPaused){
+                if( orientation === 'white'){
+                    uCtrl.startWhiteTimer();    
+                }else{
+                    uCtrl.startBlackTimer();    
+                }                              
+                isPaused = false;
+                $('#pause').attr('value', 'Pause');
+                $('#undoMove').attr('disabled', false);
+            }else{
+                uCtrl.clearBlackTimer();
+                uCtrl.clearWhiteTimer();   
+                isPaused = true;
+                $('#pause').attr('value', 'Resume');
+                $('#undoMove').attr('disabled', true);
+            }
+            
+        });
      };
 
     var onChange = function(oldPos, newPos){
@@ -157,7 +260,22 @@ var appController = (function(bCtrl, uCtrl){
         }
     } ; 
 
-
+    var disableGame = function(){
+        uCtrl.disableBtn('#nextMove');
+        uCtrl.disableBtn('#resetAll');
+        uCtrl.disableBtn('#undoMove');
+        document.getElementById('bTimerDiv').style.pointerEvents = 'none';
+        document.getElementById('wTimerDiv').style.pointerEvents = 'none';
+        
+    }
+    var enableGame = function(){
+        uCtrl.enableBtn('#nextMove');
+        uCtrl.enableBtn('#resetAll');
+        uCtrl.enableBtn('#undoMove');
+        document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
+        //document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
+        
+    }
     return{
         initGame: function(){
 
@@ -167,12 +285,12 @@ var appController = (function(bCtrl, uCtrl){
                 onChange: onChange,
                 onDragStart: onDragStart,
                 onDrop: onDrop
+                
             };
-            board = ChessBoard('board', cfg);
-            game = new Chess();
-            $('#lblTurn').text(bCtrl.headUpper(board.orientation()));
+            board = ChessBoard('board', cfg);          
             setEventListener();
             isDraged = false;
+            disableGame();
         }   
     }
 })(businessController, uiController);
