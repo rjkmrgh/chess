@@ -32,7 +32,7 @@ var businessController = (function(){
     }
 })();
 
-var uiController = (function(aCtrl){
+var uiController = (function(){
     let wCounter = 0, bCounter =0 , TotalTime = 300, wInterval, bInterval;
     
     var domObject = {
@@ -63,14 +63,28 @@ var uiController = (function(aCtrl){
     var convertTime = function(counter){
         let min = Math.floor(counter/60);
         let sec = counter % 60;
-        if(counter === 0){
+        if(counter < 1){
             clearInterval(bInterval);
             clearInterval(wInterval);            
-            aCtrl.stopGame()
+            stopGame();
+            return '00:00';
         }
         return '0' + min + ':' + (sec < 10 ? '0'+ sec : sec) ;
     }
     
+    var stopGame = function(){
+        toggleBtnVisible(DOMObject.nextMove, true);
+        //toggleBtnVisible(DOMObject.resetAll, true);
+        toggleBtnVisible(DOMObject.undoMove, true);
+        toggleBtnVisible(DOMObject.pause, true);
+        document.getElementById('bTimerDiv').style.pointerEvents = 'none';
+        document.getElementById('wTimerDiv').style.pointerEvents = 'none';
+        bCounter = 0;
+        wCounter = 0
+    }
+    var toggleBtnVisible = function(id, flag ){
+         $(id).attr("disabled", flag);
+    }
     return{
         setHistory: function(orientation, history){
             let lblOr = '.' + orientation;
@@ -80,10 +94,10 @@ var uiController = (function(aCtrl){
             $(domObject.lblTurn).text(orientation); 
         },
         disableBtn: function(id){            
-            $(id).attr("disabled", true);
+           toggleBtnVisible(id, true);
         },
         enableBtn: function(id){
-            $(id).attr("disabled", false);
+            toggleBtnVisible(id, false);
         },
         startWhiteTimer: function(){
             wInterval =setInterval(whiteTimer, 1000); 
@@ -104,21 +118,23 @@ var uiController = (function(aCtrl){
         resetTimer: function(){
             clearInterval(wInterval);            
             clearInterval(bInterval);            
-            $(domObject.bTimerDiv).text('5:00'); 
-            $(domObject.wTimerDiv).text('5:00'); 
+            $(domObject.bTimerDiv).text('05:00'); 
+            $(domObject.wTimerDiv).text('05:00'); 
             $(domObject.wTimerDiv).attr('style',  'background-color: gray');
             $(domObject.bTimerDiv).attr('style',  'background-color: gray');
+            bCounter = 0;
+            wCounter = 0
         },
         DOMObject: function(){
             return domObject;
         }
     }
     
-})(appController);
+})();
 
 var appController = (function(bCtrl, uCtrl){
 
-    var cfg, board, game, history, isDraged, isPaused = false;
+    var cfg, board, game, history, isDraged, isPaused = false, turn = '';
     
     DOMObject = uCtrl.DOMObject();
     history = bCtrl.getHistory();
@@ -171,11 +187,13 @@ var appController = (function(bCtrl, uCtrl){
                      $('#bTimerDiv').attr('style',  'background-color: gray');
                      uCtrl.clearBlackTimer();
                      uCtrl.startWhiteTimer();
+                     turn = 'white';
                  }else{
                      $('#bTimerDiv').attr('style',  'background-color: orange');
                      $('#wTimerDiv').attr('style',  'background-color: gray');
                      uCtrl.clearWhiteTimer();
                      uCtrl.startBlackTimer();
+                     turn = 'black';
                  }
              }
              uCtrl.enableBtn('#undoMove');    
@@ -200,21 +218,30 @@ var appController = (function(bCtrl, uCtrl){
              $(DOMObject.lblTurn).text(bCtrl.headUpper(board.orientation()));
              enableGame();
              uCtrl.startWhiteTimer();
+            turn = 'white';
          });        
         $(DOMObject.bTimerDiv).on('click',function(){
-            document.getElementById('bTimerDiv').style.pointerEvents = 'none';
-            console.log('bTimeer')
-            uCtrl.clearBlackTimer();
-            uCtrl.startWhiteTimer();
-            document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
+            if(turn === 'black'){
+                turn = 'white';
+                document.getElementById('bTimerDiv').style.pointerEvents = 'none';
+                console.log('bTimeer')
+                uCtrl.clearBlackTimer();
+                uCtrl.startWhiteTimer();
+                document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
+            }
         });
         $(DOMObject.wTimerDiv).on('click',function(){
-            document.getElementById('wTimerDiv').style.pointerEvents = 'none';
-            console.log('wTimeer'); 
-            uCtrl.clearWhiteTimer();
-            uCtrl.startBlackTimer();
-            document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
+            if(turn === 'white'){
+                turn = 'black';
+                document.getElementById('wTimerDiv').style.pointerEvents = 'none';
+                console.log('wTimeer'); 
+                uCtrl.clearWhiteTimer();
+                uCtrl.startBlackTimer();
+                document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
+            }
+            
         });
+        
         $(DOMObject.pause).on('click',function(){
             const orientation =board.orientation();
             if(isPaused){
@@ -318,9 +345,6 @@ var appController = (function(bCtrl, uCtrl){
             board = ChessBoard('board', cfg);          
             setEventListener();
             isDraged = false;
-            disableGame();
-        } ,
-        stopGame: function(){
             disableGame();
         }
     }
