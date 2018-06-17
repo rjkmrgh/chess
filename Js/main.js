@@ -29,31 +29,44 @@ var businessController = (function(){
             history['white'] = [];
             history['black'] = [];
         }
-
     }
 })();
 
-var uiController = (function(){
+var uiController = (function(aCtrl){
     let wCounter = 0, bCounter =0 , TotalTime = 300, wInterval, bInterval;
     
-    var whiteTimer = function(){
-        wCounter += 1;
-    
-        $('#wTimerDiv').text(convertTime(TotalTime - wCounter)); 
-    }
-    var blackTimer = function(){
-        bCounter += 1;
+    var domObject = {
+        wTimerDiv: '#wTimerDiv',
+        bTimerDiv: '#bTimerDiv',
+        lblTurn: '#lblTurn',
+        nextMove: '#nextMove',
+        undoMove: '#undoMove',
+        resetAll: '#resetAll',
+        start: '#start',
+        lblTurn: '#lblTurn',
+        bTimerDiv: '#bTimerDiv',
+        wTimerDiv: '#wTimerDiv',
+        pause: '#pause'
         
-        $('#bTimerDiv').text(convertTime(TotalTime - bCounter)); 
     }
-
+    
+    var whiteTimer = function(){
+        wCounter += 1;    
+        $(domObject.wTimerDiv).text(convertTime(TotalTime - wCounter)); 
+    }
+    
+    var blackTimer = function(){
+        bCounter += 1;        
+        $(domObject.bTimerDiv).text(convertTime(TotalTime - bCounter)); 
+    }
     
     var convertTime = function(counter){
         let min = Math.floor(counter/60);
         let sec = counter % 60;
         if(counter === 0){
             clearInterval(bInterval);
-            clearInterval(wInterval);
+            clearInterval(wInterval);            
+            aCtrl.stopGame()
         }
         return '0' + min + ':' + (sec < 10 ? '0'+ sec : sec) ;
     }
@@ -64,7 +77,7 @@ var uiController = (function(){
             $(lblOr).text(history[orientation].toString())   
         },
         setOrientation: function(orientation){
-            $('#lblTurn').text(orientation); 
+            $(domObject.lblTurn).text(orientation); 
         },
         disableBtn: function(id){            
             $(id).attr("disabled", true);
@@ -74,13 +87,13 @@ var uiController = (function(){
         },
         startWhiteTimer: function(){
             wInterval =setInterval(whiteTimer, 1000); 
-            $('#wTimerDiv').attr('style',  'background-color: orange');
-            $('#bTimerDiv').attr('style',  'background-color: gray');
+            $(domObject.wTimerDiv).attr('style',  'background-color: orange');
+            $(domObject.bTimerDiv).attr('style',  'background-color: gray');
         },
         startBlackTimer: function(){
             bInterval = setInterval(blackTimer, 1000);
-            $('#bTimerDiv').attr('style',  'background-color: orange');
-            $('#wTimerDiv').attr('style',  'background-color: gray');
+            $(domObject.bTimerDiv).attr('style',  'background-color: orange');
+            $(domObject.wTimerDiv).attr('style',  'background-color: gray');
         },
         clearWhiteTimer: function(){
             clearInterval(wInterval);            
@@ -91,22 +104,27 @@ var uiController = (function(){
         resetTimer: function(){
             clearInterval(wInterval);            
             clearInterval(bInterval);            
-            $('#bTimerDiv').text('5:00'); 
-            $('#wTimerDiv').text('5:00'); 
-            $('#wTimerDiv').attr('style',  'background-color: gray');
-            $('#bTimerDiv').attr('style',  'background-color: gray');
+            $(domObject.bTimerDiv).text('5:00'); 
+            $(domObject.wTimerDiv).text('5:00'); 
+            $(domObject.wTimerDiv).attr('style',  'background-color: gray');
+            $(domObject.bTimerDiv).attr('style',  'background-color: gray');
+        },
+        DOMObject: function(){
+            return domObject;
         }
     }
     
-})();
+})(appController);
 
 var appController = (function(bCtrl, uCtrl){
 
     var cfg, board, game, history, isDraged, isPaused = false;
-
+    
+    DOMObject = uCtrl.DOMObject();
     history = bCtrl.getHistory();
+    
     const setEventListener = function(){
-        $('#nextMove').on('click',function(){
+        $(DOMObject.nextMove).on('click',function(){
 
             uCtrl.disableBtn('#nextMove');
             isDraged = false;
@@ -136,7 +154,7 @@ var appController = (function(bCtrl, uCtrl){
             uCtrl.enableBtn('#nextMove');
 
          });
-        $('#undoMove').on('click',function(){
+        $(DOMObject.undoMove).on('click',function(){
              uCtrl.disableBtn('#undoMove');
              if(history['black'].length > 0 || history['white'].length > 0){
                  var undoMove = game.undo();
@@ -163,7 +181,7 @@ var appController = (function(bCtrl, uCtrl){
              uCtrl.enableBtn('#undoMove');    
 
          });
-        $('#resetAll').on('click',function(){
+        $(DOMObject.resetAll).on('click',function(){
             console.log('reset');
             game.reset();
             board.start();
@@ -173,49 +191,52 @@ var appController = (function(bCtrl, uCtrl){
             bCtrl.clearHistory();
             uCtrl.setHistory('white', history);  
             uCtrl.setHistory('black', history); 
-            uCtrl.clearBlackTimer();
             uCtrl.resetTimer();
-            
+            disableGame();
         }); 
-        $('#start').on('click',function(){
+        $(DOMObject.start).on('click',function(){
             
             game = new Chess();  
-             $('#lblTurn').text(bCtrl.headUpper(board.orientation()));
+             $(DOMObject.lblTurn).text(bCtrl.headUpper(board.orientation()));
              enableGame();
              uCtrl.startWhiteTimer();
-         });
-        
-        $('#bTimerDiv').on('click',function(){
+         });        
+        $(DOMObject.bTimerDiv).on('click',function(){
             document.getElementById('bTimerDiv').style.pointerEvents = 'none';
             console.log('bTimeer')
             uCtrl.clearBlackTimer();
             uCtrl.startWhiteTimer();
             document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
         });
-        $('#wTimerDiv').on('click',function(){
+        $(DOMObject.wTimerDiv).on('click',function(){
             document.getElementById('wTimerDiv').style.pointerEvents = 'none';
             console.log('wTimeer'); 
             uCtrl.clearWhiteTimer();
             uCtrl.startBlackTimer();
             document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
         });
-        $('#pause').on('click',function(){
+        $(DOMObject.pause).on('click',function(){
             const orientation =board.orientation();
             if(isPaused){
                 if( orientation === 'white'){
-                    uCtrl.startWhiteTimer();    
+                    uCtrl.startWhiteTimer();  
+                    document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
                 }else{
                     uCtrl.startBlackTimer();    
+                    document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
                 }                              
                 isPaused = false;
-                $('#pause').attr('value', 'Pause');
-                $('#undoMove').attr('disabled', false);
+                $(DOMObject.pause).attr('value', 'Pause');
+                $(DOMObject.undoMove).attr('disabled', false);               
+                
             }else{
                 uCtrl.clearBlackTimer();
                 uCtrl.clearWhiteTimer();   
                 isPaused = true;
-                $('#pause').attr('value', 'Resume');
-                $('#undoMove').attr('disabled', true);
+                $(DOMObject.pause).attr('value', 'Resume');
+                $(DOMObject.undoMove).attr('disabled', true);
+                document.getElementById('bTimerDiv').style.pointerEvents = 'none';
+                document.getElementById('wTimerDiv').style.pointerEvents = 'none';
             }
             
         });
@@ -260,22 +281,28 @@ var appController = (function(bCtrl, uCtrl){
         }
     } ; 
 
+    //
+    var onSnapEnd = function(){
+        board.position(game.fen());
+    }
     var disableGame = function(){
-        uCtrl.disableBtn('#nextMove');
-        uCtrl.disableBtn('#resetAll');
-        uCtrl.disableBtn('#undoMove');
+        uCtrl.disableBtn(DOMObject.nextMove);
+        uCtrl.disableBtn(DOMObject.resetAll);
+        uCtrl.disableBtn(DOMObject.undoMove);
+        uCtrl.disableBtn(DOMObject.pause);
         document.getElementById('bTimerDiv').style.pointerEvents = 'none';
         document.getElementById('wTimerDiv').style.pointerEvents = 'none';
         
     }
     var enableGame = function(){
-        uCtrl.enableBtn('#nextMove');
-        uCtrl.enableBtn('#resetAll');
-        uCtrl.enableBtn('#undoMove');
+        uCtrl.enableBtn(DOMObject.nextMove);
+        uCtrl.enableBtn(DOMObject.resetAll);
+        uCtrl.enableBtn(DOMObject.undoMove);
+        uCtrl.enableBtn(DOMObject.pause);
         document.getElementById('wTimerDiv').style.pointerEvents = 'auto';
-        //document.getElementById('bTimerDiv').style.pointerEvents = 'auto';
         
     }
+    
     return{
         initGame: function(){
 
@@ -284,14 +311,18 @@ var appController = (function(bCtrl, uCtrl){
                 position : 'start',
                 onChange: onChange,
                 onDragStart: onDragStart,
-                onDrop: onDrop
+                onDrop: onDrop,
+                onSnapEnd: onSnapEnd
                 
             };
             board = ChessBoard('board', cfg);          
             setEventListener();
             isDraged = false;
             disableGame();
-        }   
+        } ,
+        stopGame: function(){
+            disableGame();
+        }
     }
 })(businessController, uiController);
 

@@ -27,16 +27,6 @@
     width: 400px;
     
 }
-.wTimer{
-    margin-top: 20px;
-    background-color: gray;
-    height: 100px;
-}
-.bTimer{
-    margin-top: 20px;
-    background-color: gray;
-    height: 100px;
-}
 
 .lblHead{    
     padding: 5px;
@@ -45,4 +35,14 @@
 .timerDiv{
     width: 100px;
     height: 100px;
+}
+.wTimer, .bTimer{
+    text-align: center !important;
+    font-size: 3rem !important;
+      margin-top: 20px;
+    background-color: gray;
+    height: 100px;
+}
+.saveDiv{
+    margin-top: 20px;
 }

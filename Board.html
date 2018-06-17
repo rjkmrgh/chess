@@ -16,17 +16,7 @@
         <div class="topContainer row">
             <div  class="col-md-4"> 
                 <div id="board" class="container"></div>
-
-                <div id="lblDiv" class="container">
-                    <strong><label class="lblHead" for="lbl">Turn: </label></strong>
-                    <label for="lbl" id="lblTurn"> </label>
-                    <br/>
-                    <strong><label class="lblHead">White's History: </label></strong>
-                    <label for="lbl" class="white" id="lblWhite"> </label>
-                    <br/>
-                    <strong><label class="lblHead">Black's History: </label></strong>
-                    <label for="lbl" class="black" id="lblBlack"> </label>
-                </div>
+            
             </div>
             <div id="btnDiv" class="col-md-4">
                 <div id="btnDiv " >
@@ -44,10 +34,25 @@
                     <div id="bTimerDiv" class="w-50 p-3 bTimer">05:00
                     </div>
                 </div>
+                <div class="saveDiv" >
+                    <input type="button" id="save" title="Save" value="Save">
+                    <input type="button" id="load" title="load" value="Load">
+                </div>
             </div>
          </div>
         
-        
+        <div class=" row">
+            <div id="lblDiv" class="container">
+                <strong><label class="lblHead" for="lbl">Turn: </label></strong>
+                <label for="lbl" id="lblTurn"> </label>
+                <br/>
+                <strong><label class="lblHead">White's History: </label></strong>
+                <label for="lbl" class="white" id="lblWhite"> </label>
+                <br/>
+                <strong><label class="lblHead">Black's History: </label></strong>
+                <label for="lbl" class="black" id="lblBlack"> </label>
+            </div>
+        </div>
         <script src="Js/chessboard-0.3.0.min.js"></script>
         <script src="Js/jquery-3.3.1.min.js"></script>
         <script src="Js/chess-min.js"></script>
